@@ -2,7 +2,7 @@ public class Cell {
     private Car car;
     private Integer i;
     private Integer j;
-    private boolean istrafficLightOn = false;
+    private boolean isTrafficLightOn = false;
 
     public Cell(Integer i, Integer j) {
         this.i = i;
@@ -25,16 +25,16 @@ public class Cell {
         this.car = c;
     }
 
-    public boolean isIstrafficLightOn() {
-        return istrafficLightOn;
+    public boolean isTrafficLightOn() {
+        return isTrafficLightOn;
     }
 
     public void toggleTrafficLight() {
-        istrafficLightOn = !istrafficLightOn;
+        isTrafficLightOn = !isTrafficLightOn;
     }
 
     public void setTrafficLight(boolean trafficLight) {
-        this.istrafficLightOn = trafficLight;
+        this.isTrafficLightOn = trafficLight;
     }
 
     public boolean containsCar() {

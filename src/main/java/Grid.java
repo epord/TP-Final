@@ -1,5 +1,4 @@
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
 
@@ -98,9 +97,9 @@ public class Grid {
     }
 
     private List<List<Cell>> getEmptyCells() {
-        List<List<Cell>> newCells = new ArrayList<List<Cell>>();
+        List<List<Cell>> newCells = new ArrayList<>();
         for (int i = 0; i < roadWidth; i++) {
-            newCells.add(new ArrayList<Cell>());
+            newCells.add(new ArrayList<>());
             for (int j = 0; j < roadLength; j++) {
                 newCells.get(i).add(new Cell(i, j));
             }
@@ -112,19 +111,19 @@ public class Grid {
      * Returns the next j position in i lane where the car will be blocked (car or traffic light).
      * @param i lane
      * @param j position in the lane
-     * @return next blocking posiition in i lane
+     * @return next blocking position in i lane
      */
     private Integer getNextBlockingPosition(Integer i, Integer j) {
         Integer nextBlockingPosition = null;
         for (int k = 1; k <= roadLength && nextBlockingPosition == null; k++) {
             Cell cell = cells.get(i).get((j + k) % roadLength);
-            nextBlockingPosition = cell.containsCar() || cell.isIstrafficLightOn() ? (j + k) % roadLength : null;
+            nextBlockingPosition = cell.containsCar() || cell.isTrafficLightOn() ? (j + k) % roadLength : null;
         }
         return nextBlockingPosition;
     }
 
     public void addTrafficLight(Integer position, Integer period) {
-        if (position < roadLength) {
+        if (position < roadLength && period > 0) {
             trafficLights.put(position, period);
         }
     }
@@ -155,7 +154,7 @@ public class Grid {
     private void copyTrafficLights(List<List<Cell>> oldCells, List<List<Cell>> newCells) {
         for (int i = 0; i < roadWidth; i++) {
             for (int j = 0; j < roadLength; j++) {
-                newCells.get(i).get(j).setTrafficLight(oldCells.get(i).get(j).isIstrafficLightOn());
+                newCells.get(i).get(j).setTrafficLight(oldCells.get(i).get(j).isTrafficLightOn());
             }
         }
     }
@@ -167,7 +166,7 @@ public class Grid {
                 Cell cell = cells.get(i).get(j);
                 if (cell.containsCar())
                     sb.append(cell.getCar().getVelocity());
-                else if (cell.isIstrafficLightOn())
+                else if (cell.isTrafficLightOn())
                     sb.append("*");
                 else
                     sb.append("-");
