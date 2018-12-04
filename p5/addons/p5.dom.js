@@ -243,7 +243,7 @@
   };
 
   /**
-   * Helpers for create methods.
+   * helpers for create methods.
    */
   function addElement(elt, pInst, media) {
     var node = pInst._userNode ? pInst._userNode : document.body;

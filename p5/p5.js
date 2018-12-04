@@ -18487,7 +18487,7 @@ module.exports={
         {
             "file": "lib/addons/p5.dom.js",
             "line": 245,
-            "description": "<p>Helpers for create methods.</p>\n",
+            "description": "<p>helpers for create methods.</p>\n",
             "class": "p5",
             "module": "p5.dom",
             "submodule": "p5.dom"
@@ -26669,7 +26669,7 @@ module.exports={
             "line": " lib/addons/p5.dom.js:184"
         },
         {
-            "message": "Missing item type\nHelpers for create methods.",
+            "message": "Missing item type\nhelpers for create methods.",
             "line": " lib/addons/p5.dom.js:245"
         },
         {
@@ -70671,7 +70671,7 @@ function parseOpts(options, defaults) {
   return options;
 }
 
-//////////////////////// Helpers ////////////////////////////
+//////////////////////// helpers ////////////////////////////
 
 function at(v, i) {
   var s = v.length;

@@ -1,4 +1,3 @@
-
 public class Main {
 
     private static Integer frameCount = 1000;
