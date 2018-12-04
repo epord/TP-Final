@@ -1,10 +1,7 @@
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import java.util.Scanner;
+import java.util.*;
 
 public class Grid {
 
@@ -12,13 +9,12 @@ public class Grid {
     private List<Cell> cellsWithCar;
     private Integer carsCount = 0;
     private Integer roadLength;
-    private List<Integer> trafficLightPositions = new ArrayList<>();
+    private Map<Integer, Integer> trafficLights = new HashMap<>(); // position -> time
     private Integer currentIteration = 0;
 
     private final Integer roadWidth = 3;
     private final Integer maxVelocity = 5;
     private final Double decelerationProbability = 0.5;
-    private final Integer trafficLightPeriod = 30;
 
     public Grid(Integer roadLength, Double density) {
         if (density > 1.0 || density < 0) throw new IllegalArgumentException("density must be >= 0.0 and <= 1.0");
@@ -47,9 +43,7 @@ public class Grid {
     public void evolve() {
 
         // Toggle traffic lights
-        if (currentIteration % trafficLightPeriod == 0) {
-            toggleTrafficLights();
-        }
+        toggleTrafficLights();
 
 
         // NaSh Rule #1: Accelerate
@@ -77,7 +71,7 @@ public class Grid {
         });
 
 
-        // NaSh Rule #4: Movement
+        // NaSch Rule #4: Movement
         List<List<Cell>> newCells = getEmptyCells();
         List<Cell> newCellsWithCar = new ArrayList<>();
         moveCars(cellsWithCar, newCells, newCellsWithCar);
@@ -101,12 +95,6 @@ public class Grid {
 
     public Integer getRoadWidth() {
         return roadWidth;
-    }
-
-    public void addTrafficLight(Integer position) {
-        if (position < roadLength) {
-            trafficLightPositions.add(position);
-        }
     }
 
     private List<List<Cell>> getEmptyCells() {
@@ -135,11 +123,23 @@ public class Grid {
         return nextBlockingPosition;
     }
 
+    public void addTrafficLight(Integer position, Integer period) {
+        if (position < roadLength) {
+            trafficLights.put(position, period);
+        }
+    }
+
     private void toggleTrafficLights() {
-        for (int i = 0; i < roadWidth; i++) {
-            for (Integer trafficLightPosition: trafficLightPositions) {
-                cells.get(i).get(trafficLightPosition).toggleTrafficLight();
+        for (Integer trafficLightPosition: trafficLights.keySet()) {
+            if (currentIteration % trafficLights.get(trafficLightPosition) == 0) {
+                toggleTrafficLight(trafficLightPosition);
             }
+        }
+    }
+
+    private void toggleTrafficLight(Integer pos) {
+        for (int i = 0; i < roadWidth; i++) {
+            cells.get(i).get(pos).toggleTrafficLight();
         }
     }
 
@@ -177,14 +177,17 @@ public class Grid {
         return sb.toString();
     }
 
-    public static Grid readGridFromFile(String path) throws FileNotFoundException, IOException {
+    public static Grid readGridFromFile(String path) throws IOException {
         Scanner scanner = new Scanner(new File(path));
         Integer roadLength = scanner.nextInt();
 
         Grid grid = new Grid(roadLength, 0.0);
 
         while(scanner.hasNextInt()) {
-            grid.addTrafficLight(scanner.nextInt());
+            Integer lightPosition = scanner.nextInt();
+            if (!scanner.hasNextInt()) throw new IllegalStateException("Traffic lights must have position and period.");
+            Integer lightPeriod = scanner.nextInt();
+            grid.addTrafficLight(lightPosition, lightPeriod);
         }
 
         scanner.useDelimiter("\n");
