@@ -1,11 +1,15 @@
+import java.io.IOException;
+
 public class Main {
 
     private static Integer frameCount = 1000;
 
-    public static void main(String[] args) {
-        Grid grid = new Grid(180, 0.1);
-        grid.addTrafficLight(20);
-        grid.addTrafficLight(100);
+    public static void main(String[] args) throws IOException {
+//        Grid grid = new Grid(180, 0.1);
+//        grid.addTrafficLight(20);
+//        grid.addTrafficLight(100);
+
+        Grid grid = Grid.readGridFromFile("input.ns");
 
         FileManager fm = new FileManager();
         AnimationBuilder ab = new AnimationBuilder(grid);

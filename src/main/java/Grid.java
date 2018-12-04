@@ -1,6 +1,10 @@
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.Scanner;
 
 public class Grid {
 
@@ -38,6 +42,53 @@ public class Grid {
                 carsCount++;
             }
         }
+    }
+
+    public void evolve() {
+
+        // Toggle traffic lights
+        if (currentIteration % trafficLightPeriod == 0) {
+            toggleTrafficLights();
+        }
+
+
+        // NaSh Rule #1: Accelerate
+        cellsWithCar.stream().forEach(cell -> {
+            Car car = cell.getCar();
+            car.setVelocity(Math.min(car.getVelocity() + 1, maxVelocity));
+        });
+
+
+        // Nash Rule #2: Decelerate
+        cellsWithCar.stream().forEach(cell -> {
+            Car car = cell.getCar();
+            Integer distanceToNextObstacle = Math.floorMod(getNextBlockingPosition(cell.getI(), cell.getJ()) - cell.getJ(), roadLength);
+            car.setVelocity(Math.min(car.getVelocity(), Math.floorMod(distanceToNextObstacle - 1, roadLength)));
+        });
+
+
+        // NaSh Rule #3: Randomization
+        Random r = new Random();
+        cellsWithCar.stream().forEach(cell -> {
+            Car car = cell.getCar();
+            if (r.nextDouble() < decelerationProbability) {
+                car.setVelocity(Math.max(car.getVelocity() - 1, 0));
+            }
+        });
+
+
+        // NaSh Rule #4: Movement
+        List<List<Cell>> newCells = getEmptyCells();
+        List<Cell> newCellsWithCar = new ArrayList<>();
+        moveCars(cellsWithCar, newCells, newCellsWithCar);
+        copyTrafficLights(cells, newCells);
+        cells = newCells;
+        cellsWithCar = newCellsWithCar;
+
+
+        // Next iteration
+        currentIteration++;
+
     }
 
     public Integer getCarsCount() {
@@ -109,53 +160,6 @@ public class Grid {
         }
     }
 
-    public void evolve() {
-
-        // Toggle traffic lights
-        if (currentIteration % trafficLightPeriod == 0) {
-            toggleTrafficLights();
-        }
-
-
-        // NaSh Rule #1: Accelerate
-        cellsWithCar.stream().forEach(cell -> {
-            Car car = cell.getCar();
-            car.setVelocity(Math.min(car.getVelocity() + 1, maxVelocity));
-        });
-
-
-        // Nash Rule #2: Decelerate
-        cellsWithCar.stream().forEach(cell -> {
-            Car car = cell.getCar();
-            Integer distanceToNextObstacle = Math.floorMod(getNextBlockingPosition(cell.getI(), cell.getJ()) - cell.getJ(), roadLength);
-            car.setVelocity(Math.min(car.getVelocity(), Math.floorMod(distanceToNextObstacle - 1, roadLength)));
-        });
-
-
-        // NaSh Rule #3: Randomization
-        Random r = new Random();
-        cellsWithCar.stream().forEach(cell -> {
-            Car car = cell.getCar();
-            if (r.nextDouble() < decelerationProbability) {
-                car.setVelocity(Math.max(car.getVelocity() - 1, 0));
-            }
-        });
-
-
-        // NaSh Rule #4: Movement
-        List<List<Cell>> newCells = getEmptyCells();
-        List<Cell> newCellsWithCar = new ArrayList<>();
-        moveCars(cellsWithCar, newCells, newCellsWithCar);
-        copyTrafficLights(cells, newCells);
-        cells = newCells;
-        cellsWithCar = newCellsWithCar;
-
-
-        // Next iteration
-        currentIteration++;
-
-    }
-
     public String rasterize() {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < roadWidth; i++) {
@@ -171,5 +175,36 @@ public class Grid {
             sb.append("\n");
         }
         return sb.toString();
+    }
+
+    public static Grid readGridFromFile(String path) throws FileNotFoundException, IOException {
+        Scanner scanner = new Scanner(new File(path));
+        Integer roadLength = scanner.nextInt();
+
+        Grid grid = new Grid(roadLength, 0.0);
+
+        while(scanner.hasNextInt()) {
+            grid.addTrafficLight(scanner.nextInt());
+        }
+
+        scanner.useDelimiter("\n");
+        Integer i = 0;
+        Integer j;
+        while(scanner.hasNext() && i < 3) {
+            j = 0;
+            String line = scanner.next();
+            if (line.length() != roadLength) throw new IllegalStateException("Road must be " + roadLength + " long.");
+            for (Character c: line.toCharArray()) {
+                if (c >= '0' && c <= '9') {
+                    Cell cell = grid.cells.get(i).get(j);
+                    cell.setCar(new Car(c - '0'));
+                    grid.cellsWithCar.add(cell);
+                    grid.carsCount++;
+                }
+                j++;
+            }
+            i++;
+        }
+        return grid;
     }
 }
