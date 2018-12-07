@@ -1,12 +1,12 @@
 var file;
 var frames = [];
 var frames_count;
-var roadWidth;
-var roadLength;
+var cityWidth;
+var cityHeight;
 var carsCount;
 
 var carWidth;
-var canvas_size = 1600;
+var canvas_size = 800;
 
 function preload() {
     file = loadStrings('./animation.out');
@@ -14,26 +14,26 @@ function preload() {
 
 function setup() {
     readAnimationInfo();
-    frames_count = Math.floor((file.length - 3) / roadWidth);
+    frames_count = Math.floor((file.length - 3) / cityWidth);
     readFrames(file);
 
     frameRate(10);
-    createCanvas(canvas_size, (roadWidth + 2) * carWidth);
+    createCanvas(canvas_size, (cityWidth + 2) * carWidth);
 }
 
 function readAnimationInfo() {
     var splitted = file[0].trim().split(" ");
-    roadWidth = parseInt(splitted[0]);
-    roadLength = parseInt(splitted[1]);
+    cityWidth = parseInt(splitted[0]);
+    cityHeight = parseInt(splitted[1]);
     carsCount = parseInt(splitted[2]);
-    carWidth = canvas_size / roadLength;
+    carWidth = canvas_size / cityHeight;
 }
 
 function readFrames() {
     for (var k = 0; k < frames_count; k++) {
         var lanes = [];
-        for (var i = 0; i < roadWidth; i++) {
-            var serialized = file[k * roadWidth + i + 1];
+        for (var i = 0; i < cityWidth; i++) {
+            var serialized = file[k * cityWidth + i + 1];
             lanes.push(serialized.split(''));
         }
         frames.push(lanes);
@@ -48,7 +48,9 @@ function draw() {
         lane.forEach((cell, j) => {
             if (cell >= 0) {
                 drawCar(i, j, cell);
-            }
+            } else if (cell == '.') {
+                drawNotDrivable(i, j);
+    }
         });
         lane.forEach((cell, j) => {
             if (cell == '*') {
@@ -83,5 +85,10 @@ function drawCar(i, j, speed) {
 
 function drawRedLight(i, j) {
     fill('#ff000088');
+    rect(carWidth * j, (i + 1) * carWidth, carWidth, carWidth);
+}
+
+function drawNotDrivable(i, j) {
+    fill('#555555');
     rect(carWidth * j, (i + 1) * carWidth, carWidth, carWidth);
 }

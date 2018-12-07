@@ -2,13 +2,13 @@ public class AnimationBuilder {
 
     private StringBuilder sb = new StringBuilder();
 
-    public AnimationBuilder(Avenue avenue) {
-        sb.append(avenue.getRoadWidth() + " " + avenue.getRoadLength() + " " + avenue.getCarsCount());
+    public AnimationBuilder(City city) {
+        sb.append(city.getCityWidth() + " " + city.getCityHeight() + " " + city.getCarsCount());
         sb.append("\n");
     }
 
-    public void addCurrentFrame(Avenue avenue) {
-        sb.append(avenue.rasterize());
+    public void addCurrentFrame(City city) {
+        sb.append(city.rasterize());
     }
 
     public String getString() {

@@ -2,27 +2,21 @@ import java.io.IOException;
 
 public class Main {
 
-    private static Integer frameCount = 1000;
+    private static Integer frameCount = 10;
 
     public static void main(String[] args) throws IOException {
-        Avenue avenue = new Avenue(180, 0.2);
-        avenue.addTrafficLight(20, 30);
-        avenue.addTrafficLight(100, 15);
-
-//        Avenue avenue = Avenue.readAvenueFromFile("input.ns");
-
-        FileManager fm = new FileManager();
-        AnimationBuilder ab = new AnimationBuilder(avenue);
-
-        ab.addCurrentFrame(avenue);
-        System.out.println(avenue.rasterize());
+        City city = City.readCityFromFile("city.ns");
+        AnimationBuilder ab = new AnimationBuilder(city);
+        ab.addCurrentFrame(city);
 
         for (int i = 0; i < frameCount; i++) {
-            avenue.evolve();
-            ab.addCurrentFrame(avenue);
-            System.out.println(avenue.rasterize());
+            System.out.println("===== " + i + " =====");
+            System.out.println(city.rasterize());
+            city.evolve();
+            ab.addCurrentFrame(city);
         }
 
+        FileManager fm = new FileManager();
         fm.writeString("p5/frontend/animation.out", ab.getString());
     }
 
