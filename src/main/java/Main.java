@@ -5,22 +5,22 @@ public class Main {
     private static Integer frameCount = 1000;
 
     public static void main(String[] args) throws IOException {
-        Grid grid = new Grid(180, 0.2);
-        grid.addTrafficLight(20, 30);
-        grid.addTrafficLight(100, 15);
+        Avenue avenue = new Avenue(180, 0.2);
+        avenue.addTrafficLight(20, 30);
+        avenue.addTrafficLight(100, 15);
 
-//        Grid grid = Grid.readGridFromFile("input.ns");
+//        Avenue avenue = Avenue.readAvenueFromFile("input.ns");
 
         FileManager fm = new FileManager();
-        AnimationBuilder ab = new AnimationBuilder(grid);
+        AnimationBuilder ab = new AnimationBuilder(avenue);
 
-        ab.addCurrentFrame(grid);
-        System.out.println(grid.rasterize());
+        ab.addCurrentFrame(avenue);
+        System.out.println(avenue.rasterize());
 
         for (int i = 0; i < frameCount; i++) {
-            grid.evolve();
-            ab.addCurrentFrame(grid);
-            System.out.println(grid.rasterize());
+            avenue.evolve();
+            ab.addCurrentFrame(avenue);
+            System.out.println(avenue.rasterize());
         }
 
         fm.writeString("p5/frontend/animation.out", ab.getString());

@@ -2,7 +2,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-public class Grid {
+public class Avenue {
 
     private List<List<Cell>> cells;
     private List<Cell> cellsWithCar;
@@ -15,7 +15,7 @@ public class Grid {
     private final Integer maxVelocity = 5;
     private final Double decelerationProbability = 0.5;
 
-    public Grid(Integer roadLength, Double density) {
+    public Avenue(Integer roadLength, Double density) {
         if (density > 1.0 || density < 0) throw new IllegalArgumentException("density must be >= 0.0 and <= 1.0");
         this.roadLength = roadLength;
         this.initialize(density);
@@ -176,17 +176,17 @@ public class Grid {
         return sb.toString();
     }
 
-    public static Grid readGridFromFile(String path) throws IOException {
+    public static Avenue readAvenueFromFile(String path) throws IOException {
         Scanner scanner = new Scanner(new File(path));
         Integer roadLength = scanner.nextInt();
 
-        Grid grid = new Grid(roadLength, 0.0);
+        Avenue avenue = new Avenue(roadLength, 0.0);
 
         while(scanner.hasNextInt()) {
             Integer lightPosition = scanner.nextInt();
             if (!scanner.hasNextInt()) throw new IllegalStateException("Traffic lights must have position and period.");
             Integer lightPeriod = scanner.nextInt();
-            grid.addTrafficLight(lightPosition, lightPeriod);
+            avenue.addTrafficLight(lightPosition, lightPeriod);
         }
 
         scanner.useDelimiter("\n");
@@ -198,15 +198,15 @@ public class Grid {
             if (line.length() != roadLength) throw new IllegalStateException("Road must be " + roadLength + " long.");
             for (Character c: line.toCharArray()) {
                 if (c >= '0' && c <= '9') {
-                    Cell cell = grid.cells.get(i).get(j);
+                    Cell cell = avenue.cells.get(i).get(j);
                     cell.setCar(new Car(c - '0'));
-                    grid.cellsWithCar.add(cell);
-                    grid.carsCount++;
+                    avenue.cellsWithCar.add(cell);
+                    avenue.carsCount++;
                 }
                 j++;
             }
             i++;
         }
-        return grid;
+        return avenue;
     }
 }
