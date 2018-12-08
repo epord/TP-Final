@@ -1,3 +1,5 @@
+import javafx.util.Pair;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -5,14 +7,18 @@ import java.util.*;
 public class City {
 
     private List<List<Cell>> cells;
-    private List<Cell> cellsWithCar = new ArrayList<>();
+    private Map<Pair<Integer, Integer>, Car> cars = new HashMap<>();
+    private List<Cell> horizontalSpawners = new ArrayList<>();
+    private List<Cell> verticalSpawners = new ArrayList<>();
     private Integer carsCount = 0;
     private Integer cityWidth;
     private Integer cityHeight;
     private Integer currentIteration = 0;
 
-    private final Integer maxVelocity = 5;
-    private final Double decelerationProbability = 0.0;
+    private final Integer maxVelocity = 3;
+    private final Double decelerationProbability = 0.3;
+    private final Double horizontalSpawnRate = 1.0;
+    private final Double verticalSpawnRate = 1.0;
 
     public City(Integer cityWidth, Integer cityHeight, Double density) {
         if (density > 1.0 || density < 0) throw new IllegalArgumentException("density must be >= 0.0 and <= 1.0");
@@ -24,25 +30,45 @@ public class City {
 
     public void evolve() {
 
+        Random r = new Random();
+
+
+        // Spawn cars
+        horizontalSpawners.stream().forEach(cell -> {
+            if (!cell.containsCar() && r.nextDouble() < horizontalSpawnRate) {
+                Car newCar = new Car(5, Direction.HORIZONTAL);
+                cell.setCar(newCar);
+                cars.put(new Pair<>(cell.getI(), cell.getJ()), newCar);
+            }
+        });
+        verticalSpawners.stream().forEach(cell -> {
+            if (!cell.containsCar() && r.nextDouble() < verticalSpawnRate) {
+                Car newCar = new Car(r.nextInt(maxVelocity), Direction.VERTICAL);
+                cell.setCar(newCar);
+                cars.put(new Pair<>(cell.getI(), cell.getJ()), newCar);
+            }
+        });
+
+
         // NaSh Rule #1: Accelerate
-        cellsWithCar.stream().forEach(cell -> {
-            Car car = cell.getCar();
+        cars.keySet().stream().forEach(position -> {
+            Car car = cars.get(position);
             car.setVelocity(Math.min(car.getVelocity() + 1, maxVelocity));
         });
 
 
         // Nash Rule #2: Decelerate
-        cellsWithCar.stream().forEach(cell -> {
-            Car car = cell.getCar();
+        cars.keySet().stream().forEach(position -> {
+            Car car = cars.get(position);
+            Cell cell = cells.get(position.getKey()).get(position.getValue());
             Integer distanceToNextObstacle = getDistanceToObstacle(cell.getI(), cell.getJ(), car);
             car.setVelocity(Math.min(car.getVelocity(), distanceToNextObstacle - 1));
         });
 
 
         // NaSh Rule #3: Randomization
-        Random r = new Random();
-        cellsWithCar.stream().forEach(cell -> {
-            Car car = cell.getCar();
+        cars.keySet().stream().forEach(position -> {
+            Car car = cars.get(position);
             if (r.nextDouble() < decelerationProbability) {
                 car.setVelocity(Math.max(car.getVelocity() - 1, 0));
             }
@@ -50,12 +76,7 @@ public class City {
 
 
         // NaSch Rule #4: Movement
-        List<List<Cell>> newCells = getCellsWithoutCars(cells);
-        List<Cell> newCellsWithCar = new ArrayList<>();
-        moveCars(cellsWithCar, newCells, newCellsWithCar);
-//        copyTrafficLights(cells, newCells);
-        cells = newCells;
-        cellsWithCar = newCellsWithCar;
+        moveCars();
 
 
         // Next iteration
@@ -108,8 +129,8 @@ public class City {
         Integer distanceToObstacle = null;
         Boolean isMovingHorizontally = car.isMovingHorizontally();
 
-        for (int k = 1; distanceToObstacle == null && k < car.getVelocity(); k++) {
-            Boolean outOfMap = isMovingHorizontally ? j + k >= cityWidth : i+ k >= cityHeight;
+        for (int k = 1; distanceToObstacle == null && k < car.getVelocity() + 1; k++) {
+            Boolean outOfMap = isMovingHorizontally ? j + k >= cityWidth : i + k >= cityHeight;
             if (outOfMap) {
                 distanceToObstacle = Integer.MAX_VALUE;
             } else {
@@ -120,20 +141,46 @@ public class City {
         return distanceToObstacle != null ? distanceToObstacle : Integer.MAX_VALUE;
     }
 
-    private void moveCars(List<Cell> oldCellsWithCar, List<List<Cell>> newCells, List<Cell> newCellsWithCar){
-        oldCellsWithCar.stream().forEach(cell -> {
-            Car car = cell.getCar();
+    private void moveCars() {
+        clearCarsFromCells();
+
+        cars.keySet().stream().forEach(position -> {
+            Integer i = position.getKey();
+            Integer j = position.getValue();
+            Car car = cars.get(position);
             Boolean isMovingHorizontally = car.isMovingHorizontally();
             Boolean outOfMap = isMovingHorizontally ?
-                    cell.getJ() + car.getVelocity() >= cityWidth : cell.getI() + car.getVelocity() >= cityHeight;
+                    j + car.getVelocity() >= cityWidth : i + car.getVelocity() >= cityHeight;
             if (!outOfMap) {
-                Cell cellWithCar =isMovingHorizontally ?
-                        newCells.get(cell.getI()).get(cell.getJ() + car.getVelocity())
-                        : newCells.get(cell.getI() + car.getVelocity()).get(cell.getJ());
-                cellWithCar.setCar(car);
-                newCellsWithCar.add(cellWithCar);
+                Cell destinationCell = isMovingHorizontally ?
+                        cells.get(i).get(j + car.getVelocity())
+                        : cells.get(i + car.getVelocity()).get(j);
+                destinationCell.setCar(car);
             }
         });
+
+        cars = getCars();
+    }
+
+    private void clearCarsFromCells() {
+        for (int i = 0; i < cityHeight; i++) {
+            for (int j = 0; j < cityWidth; j++) {
+                cells.get(i).get(j).removeCar();
+            }
+        }
+    }
+
+    private Map<Pair<Integer, Integer>, Car> getCars() {
+        Map<Pair<Integer, Integer>, Car> cars = new HashMap<>();
+        for (int i = 0; i < cityHeight; i++) {
+            for (int j = 0; j < cityWidth; j++) {
+                Cell cell = cells.get(i).get(j);
+                if (cell.containsCar()) {
+                    cars.put(new Pair<>(i, j), cell.getCar());
+                }
+            }
+        }
+        return cars;
     }
 
     public String rasterize() {
@@ -173,19 +220,25 @@ public class City {
                 } else if (c == '+') {
                     city.cells.get(i).get(j).setAvailability(true);
                     city.cells.get(i).get(j).setIntersection(true);
+                } else if (c == 'V') {
+                    city.cells.get(i).get(j).setAvailability(true);
+                    city.verticalSpawners.add(city.cells.get(i).get(j));
+                } else if (c == 'H') {
+                    city.cells.get(i).get(j).setAvailability(true);
+                    city.horizontalSpawners.add(city.cells.get(i).get(j));
                 }
                 j++;
             }
             i++;
         }
-        city.cells.get(0).get(0).setCar(new Car(3, Direction.HORIZONTAL));
-        city.cellsWithCar.add(city.cells.get(0).get(0));
-        city.cells.get(0).get(3).setCar(new Car(0, Direction.HORIZONTAL));
-        city.cellsWithCar.add(city.cells.get(0).get(3));
-        city.cells.get(0).get(9).setCar(new Car(3, Direction.VERTICAL));
-        city.cellsWithCar.add(city.cells.get(0).get(9));
-        city.cells.get(4).get(9).setCar(new Car(0, Direction.VERTICAL));
-        city.cellsWithCar.add(city.cells.get(4).get(9));
+//        city.cells.get(0).get(0).setCar(new Car(3, Direction.HORIZONTAL));
+//        city.cars.add(city.cells.get(0).get(0));
+//        city.cells.get(0).get(3).setCar(new Car(0, Direction.HORIZONTAL));
+//        city.cars.add(city.cells.get(0).get(3));
+//        city.cells.get(0).get(9).setCar(new Car(3, Direction.VERTICAL));
+//        city.cars.add(city.cells.get(0).get(9));
+//        city.cells.get(4).get(9).setCar(new Car(0, Direction.VERTICAL));
+//        city.cars.add(city.cells.get(4).get(9));
         return city;
     }
 
@@ -194,7 +247,7 @@ public class City {
 
     private void initialize(Double density) {
 
-        cellsWithCar = new ArrayList<>();
+//        cars = new ArrayList<>();
         Random r = new Random();
         while ((1.0 * carsCount) / (cityHeight * cityWidth) < density) {
             // TODO: more efficient generation
@@ -203,7 +256,7 @@ public class City {
             if (!cells.get(i).get(j).containsCar()) {
                 Cell c = cells.get(i).get(j);
 //                c.setCar(new Car(Math.abs(r.nextInt() % maxVelocity)));
-                cellsWithCar.add(c);
+//                cars.add(c);
                 carsCount++;
             }
         }

@@ -28,6 +28,10 @@ public class Cell {
         return this.car;
     }
 
+    public void removeCar() {
+        this.car = null;
+    }
+
     public void setCar(Car c) {
         if (this.car != null) throw new IllegalStateException("A car is already present in his cell.");
         this.car = c;

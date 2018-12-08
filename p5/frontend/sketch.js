@@ -3,7 +3,6 @@ var frames = [];
 var frames_count;
 var cityWidth;
 var cityHeight;
-var carsCount;
 
 var carWidth;
 var canvas_size = 800;
@@ -14,26 +13,30 @@ function preload() {
 
 function setup() {
     readAnimationInfo();
-    frames_count = Math.floor((file.length - 3) / cityWidth);
-    readFrames(file);
+    frames_count = Math.floor((file.length - 3) / cityHeight);
 
+    console.log(frames_count);
+
+    readFrames(file);
     frameRate(10);
-    createCanvas(canvas_size, (cityWidth + 2) * carWidth);
+
+    console.log("finished setup!");
+
+    createCanvas(cityWidth * carWidth, cityHeight * carWidth);
 }
 
 function readAnimationInfo() {
     var splitted = file[0].trim().split(" ");
     cityWidth = parseInt(splitted[0]);
     cityHeight = parseInt(splitted[1]);
-    carsCount = parseInt(splitted[2]);
-    carWidth = canvas_size / cityHeight;
+    carWidth = canvas_size / cityWidth;
 }
 
 function readFrames() {
     for (var k = 0; k < frames_count; k++) {
         var lanes = [];
-        for (var i = 0; i < cityWidth; i++) {
-            var serialized = file[k * cityWidth + i + 1];
+        for (var i = 0; i < cityHeight; i++) {
+            var serialized = file[k * cityHeight + i + 1];
             lanes.push(serialized.split(''));
         }
         frames.push(lanes);
@@ -80,15 +83,15 @@ colorsBySpeed = {
 
 function drawCar(i, j, speed) {
     fill(colorsBySpeed[speed]);
-    rect(carWidth * j, (i + 1) * carWidth, carWidth, carWidth);
+    rect(carWidth * j, i * carWidth, carWidth, carWidth);
 }
 
 function drawRedLight(i, j) {
     fill('#ff000088');
-    rect(carWidth * j, (i + 1) * carWidth, carWidth, carWidth);
+    rect(carWidth * j, i * carWidth, carWidth, carWidth);
 }
 
 function drawNotDrivable(i, j) {
     fill('#555555');
-    rect(carWidth * j, (i + 1) * carWidth, carWidth, carWidth);
+    rect(carWidth * j, i * carWidth, carWidth, carWidth);
 }

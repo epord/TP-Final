@@ -3,7 +3,7 @@ public class AnimationBuilder {
     private StringBuilder sb = new StringBuilder();
 
     public AnimationBuilder(City city) {
-        sb.append(city.getCityWidth() + " " + city.getCityHeight() + " " + city.getCarsCount());
+        sb.append(city.getCityWidth() + " " + city.getCityHeight());
         sb.append("\n");
     }
 

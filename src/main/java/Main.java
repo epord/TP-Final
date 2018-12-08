@@ -2,7 +2,7 @@ import java.io.IOException;
 
 public class Main {
 
-    private static Integer frameCount = 10;
+    private static Integer frameCount = 100;
 
     public static void main(String[] args) throws IOException {
         City city = City.readCityFromFile("city.ns");
