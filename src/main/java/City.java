@@ -1,3 +1,4 @@
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import javafx.util.Pair;
 
 import java.io.File;
@@ -8,6 +9,7 @@ public class City {
 
     private List<List<Cell>> cells;
     private Map<Pair<Integer, Integer>, Car> cars = new HashMap<>();
+    private List<TrafficLightClass> trafficLightClasses = new ArrayList<>();
     private List<Cell> horizontalSpawners = new ArrayList<>();
     private List<Cell> verticalSpawners = new ArrayList<>();
     private Integer carsCount = 0;
@@ -17,7 +19,7 @@ public class City {
 
     private final Integer maxVelocity = 3;
     private final Double decelerationProbability = 0.3;
-    private final Double horizontalSpawnRate = 1.0;
+    private final Double horizontalSpawnRate = 0.2;
     private final Double verticalSpawnRate = 1.0;
 
     public City(Integer cityWidth, Integer cityHeight, Double density) {
@@ -36,7 +38,7 @@ public class City {
         // Spawn cars
         horizontalSpawners.stream().forEach(cell -> {
             if (!cell.containsCar() && r.nextDouble() < horizontalSpawnRate) {
-                Car newCar = new Car(5, Direction.HORIZONTAL);
+                Car newCar = new Car(r.nextInt(maxVelocity) + 1, Direction.HORIZONTAL);
                 cell.setCar(newCar);
                 cars.put(new Pair<>(cell.getI(), cell.getJ()), newCar);
             }
@@ -79,25 +81,19 @@ public class City {
         moveCars();
 
 
+        // Toggle traffic lights
+        trafficLightClasses.stream().forEach(trafficLightClass -> {
+            if ((currentIteration + trafficLightClass.getPhase()) % trafficLightClass.getPeriod() == 0) {
+                trafficLightClass.getPositions().forEach(position -> {
+                    cells.get(position.getKey()).get(position.getValue()).toggleTrafficLight();
+                });
+            }
+        });
+
+
         // Next iteration
         currentIteration++;
 
-    }
-
-    private List<List<Cell>> getCellsWithoutCars(List<List<Cell>> cells) {
-        List<List<Cell>> cellsCopy = new ArrayList<>();
-        for (int i = 0; i < cells.size(); i++) {
-            cellsCopy.add(new ArrayList<>());
-            for (int j = 0; j < cells.get(0).size(); j++) {
-                Cell cell = cells.get(i).get(j);
-                cellsCopy.get(i).add(new Cell(i, j, cell.isAvailable(), cell.isIntersection()));
-            }
-        }
-        return cellsCopy;
-    }
-
-    public Integer getCarsCount() {
-        return carsCount;
     }
 
     public Integer getCityWidth() {
@@ -119,12 +115,6 @@ public class City {
         return newCells;
     }
 
-    /**
-     * Returns the next j position in i lane where the car will be blocked (car or traffic light).
-     * @param i lane
-     * @param j position in the lane
-     * @return next blocking position in i lane
-     */
     private Integer getDistanceToObstacle(Integer i, Integer j, Car car) {
         Integer distanceToObstacle = null;
         Boolean isMovingHorizontally = car.isMovingHorizontally();
@@ -135,7 +125,7 @@ public class City {
                 distanceToObstacle = Integer.MAX_VALUE;
             } else {
                 Cell cell = isMovingHorizontally ? cells.get(i).get(j + k) : cells.get(i + k).get(j);
-                distanceToObstacle = cell.containsCar() || !cell.isAvailable() ? k : null;
+                distanceToObstacle = cell.isBlocked() ? k : null;
             }
         }
         return distanceToObstacle != null ? distanceToObstacle : Integer.MAX_VALUE;
@@ -155,6 +145,12 @@ public class City {
                 Cell destinationCell = isMovingHorizontally ?
                         cells.get(i).get(j + car.getVelocity())
                         : cells.get(i + car.getVelocity()).get(j);
+                while (destinationCell.containsCar()) {
+                    car.setVelocity(car.getVelocity() - 1);
+                    destinationCell = isMovingHorizontally ?
+                            cells.get(i).get(j + car.getVelocity())
+                            : cells.get(i + car.getVelocity()).get(j);
+                }
                 destinationCell.setCar(car);
             }
         });
@@ -190,8 +186,11 @@ public class City {
                 Cell cell = cells.get(i).get(j);
                 if (cell.containsCar())
                     sb.append(cell.getCar().getVelocity());
+                else if (cell.isTrafficLightOn()) {
+                    sb.append("*");
+                }
                 else if (cell.isAvailable())
-                    sb.append("_");
+                sb.append("_");
                 else
                     sb.append(".");
             }
@@ -204,8 +203,13 @@ public class City {
         Scanner scanner = new Scanner(new File(path));
         Integer cityWidth = scanner.nextInt();
         Integer cityHeight = scanner.nextInt();
+        Integer amountOfTrafficLights = scanner.nextInt();
 
         City city = new City(cityWidth, cityHeight, 0.0);
+
+        for (int i = 0; i < amountOfTrafficLights; i++) {
+            city.trafficLightClasses.add(new TrafficLightClass(scanner.nextInt(), scanner.nextInt(), scanner.nextBoolean()));
+        }
 
         scanner.useDelimiter("\n");
         Integer i = 0;
@@ -226,19 +230,18 @@ public class City {
                 } else if (c == 'H') {
                     city.cells.get(i).get(j).setAvailability(true);
                     city.horizontalSpawners.add(city.cells.get(i).get(j));
+                } else if (c >= '0' && c <= '9') {
+                    city.cells.get(i).get(j).setAvailability(true);
+                    TrafficLightClass trafficLightClass = city.trafficLightClasses.get(c - '0');
+                    trafficLightClass.addTrafficLight(i, j);
+                    if (trafficLightClass.isInitiallyEnabled()) {
+                        city.cells.get(i).get(j).setTrafficLightEnabled(true);
+                    }
                 }
                 j++;
             }
             i++;
         }
-//        city.cells.get(0).get(0).setCar(new Car(3, Direction.HORIZONTAL));
-//        city.cars.add(city.cells.get(0).get(0));
-//        city.cells.get(0).get(3).setCar(new Car(0, Direction.HORIZONTAL));
-//        city.cars.add(city.cells.get(0).get(3));
-//        city.cells.get(0).get(9).setCar(new Car(3, Direction.VERTICAL));
-//        city.cars.add(city.cells.get(0).get(9));
-//        city.cells.get(4).get(9).setCar(new Car(0, Direction.VERTICAL));
-//        city.cars.add(city.cells.get(4).get(9));
         return city;
     }
 

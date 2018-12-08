@@ -2,18 +2,20 @@ public class Cell {
     private Car car;
     private Integer i;
     private Integer j;
-    private boolean isAvailable = false;
+    private boolean isAvailable;
     private boolean isIntersection;
+    private boolean isTrafficLightOn;
 
-    public Cell(Integer i, Integer j, boolean isAvailable, boolean isIntersection) {
+    public Cell(Integer i, Integer j, boolean isAvailable, boolean isIntersection, boolean isTrafficLightOn) {
         this.i = i;
         this.j = j;
         this.isAvailable = isAvailable;
         this.isIntersection = isIntersection;
+        this.isTrafficLightOn = isTrafficLightOn;
     }
 
     public Cell(Integer i, Integer j) {
-        this(i, j, false, false);
+        this(i, j, false, false, false);
     }
 
     public Integer getI() {
@@ -37,6 +39,10 @@ public class Cell {
         this.car = c;
     }
 
+    public boolean isBlocked() {
+        return !isAvailable || isTrafficLightOn || car != null;
+    }
+
     public boolean isIntersection() {
         return isIntersection;
     }
@@ -51,6 +57,18 @@ public class Cell {
 
     public void toggleAvailability() {
         isAvailable = !isAvailable;
+    }
+
+    public boolean isTrafficLightOn() {
+        return isTrafficLightOn;
+    }
+
+    public void setTrafficLightEnabled(boolean trafficLightOn) {
+        isTrafficLightOn = trafficLightOn;
+    }
+
+    public void toggleTrafficLight() {
+        isTrafficLightOn = !isTrafficLightOn;
     }
 
     public void setAvailability(boolean availability) {

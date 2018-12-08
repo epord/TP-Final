@@ -15,12 +15,8 @@ function setup() {
     readAnimationInfo();
     frames_count = Math.floor((file.length - 3) / cityHeight);
 
-    console.log(frames_count);
-
     readFrames(file);
     frameRate(10);
-
-    console.log("finished setup!");
 
     createCanvas(cityWidth * carWidth, cityHeight * carWidth);
 }

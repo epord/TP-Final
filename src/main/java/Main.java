@@ -2,10 +2,11 @@ import java.io.IOException;
 
 public class Main {
 
-    private static Integer frameCount = 100;
+    private static Integer frameCount = 1000;
 
     public static void main(String[] args) throws IOException {
         City city = City.readCityFromFile("city.ns");
+//        City city = City.readCityFromFile("city_no_traffic_lights.ns");
         AnimationBuilder ab = new AnimationBuilder(city);
         ab.addCurrentFrame(city);
 
