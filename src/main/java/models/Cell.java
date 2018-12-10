@@ -65,8 +65,8 @@ public class Cell {
         return isTrafficLightOn;
     }
 
-    public void setTrafficLightEnabled(boolean trafficLightOn) {
-        isTrafficLightOn = trafficLightOn;
+    public void setTrafficLight(boolean status) {
+        isTrafficLightOn = status;
     }
 
     public void toggleTrafficLight() {

@@ -16,19 +16,17 @@ public class City {
     private Integer carsCount = 0;
     private Integer cityWidth;
     private Integer cityHeight;
-    private Integer currentIteration = 0;
+    private Integer currentIteration = 1;
 
     private final Integer maxVelocity = 3;
     private final Double decelerationProbability = 0.3;
     private final Double horizontalSpawnRate = 0.2;
     private final Double verticalSpawnRate = 1.0;
 
-    public City(Integer cityWidth, Integer cityHeight, Double density) {
-        if (density > 1.0 || density < 0) throw new IllegalArgumentException("density must be >= 0.0 and <= 1.0");
+    public City(Integer cityWidth, Integer cityHeight) {
         this.cityWidth = cityWidth;
         this.cityHeight = cityHeight;
         this.cells = getEmptyCells();
-//        this.initialize(density);
     }
 
     public void evolve() {
@@ -54,14 +52,14 @@ public class City {
 
 
         // NaSh Rule #1: Accelerate
-        cars.keySet().stream().forEach(position -> {
+        cars.keySet().parallelStream().forEach(position -> {
             Car car = cars.get(position);
             car.setVelocity(Math.min(car.getVelocity() + 1, maxVelocity));
         });
 
 
         // Nash Rule #2: Decelerate
-        cars.keySet().stream().forEach(position -> {
+        cars.keySet().parallelStream().forEach(position -> {
             Car car = cars.get(position);
             Cell cell = cells.get(position.getKey()).get(position.getValue());
             Integer distanceToNextObstacle = getDistanceToObstacle(cell.getI(), cell.getJ(), car);
@@ -70,7 +68,7 @@ public class City {
 
 
         // NaSh Rule #3: Randomization
-        cars.keySet().stream().forEach(position -> {
+        cars.keySet().parallelStream().forEach(position -> {
             Car car = cars.get(position);
             if (r.nextDouble() < decelerationProbability) {
                 car.setVelocity(Math.max(car.getVelocity() - 1, 0));
@@ -81,15 +79,30 @@ public class City {
         // NaSch Rule #4: Movement
         moveCars();
 
-
-        // Toggle traffic lights
-        trafficLightClasses.stream().forEach(trafficLightClass -> {
-            if ((currentIteration + trafficLightClass.getPhase()) % trafficLightClass.getPeriod() == 0) {
-                trafficLightClass.getPositions().forEach(position -> {
-                    cells.get(position.getKey()).get(position.getValue()).toggleTrafficLight();
-                });
-            }
-        });
+        trafficLightClasses.parallelStream().forEach(trafficLightClass -> {
+        	if (currentIteration >= trafficLightClass.getPhase()) {
+				if (currentIteration.equals(trafficLightClass.getPhase())) {
+					trafficLightClass.setStatus(trafficLightClass.isInitiallyEnabled());
+					trafficLightClass.setLastToggleIteration(currentIteration);
+				} else {
+					// If traffic light is on
+					if (trafficLightClass.getStatus()) {
+						if (currentIteration - trafficLightClass.getLastToggleIteration() == trafficLightClass.getOnDuration()) {
+							trafficLightClass.setStatus(false);
+							trafficLightClass.setLastToggleIteration(currentIteration);
+						}
+					} else {
+						if (currentIteration - trafficLightClass.getLastToggleIteration() == trafficLightClass.getOffDuration()) {
+							trafficLightClass.setStatus(true);
+							trafficLightClass.setLastToggleIteration(currentIteration);
+						}
+					}
+				}
+				trafficLightClass.getPositions().forEach(position -> {
+					cells.get(position.getKey()).get(position.getValue()).setTrafficLight(trafficLightClass.getStatus());
+				});
+			}
+		});
 
 
         // Next iteration
@@ -185,12 +198,11 @@ public class City {
         for (int i = 0; i < cityHeight; i++) {
             for (int j = 0; j < cityWidth; j++) {
                 Cell cell = cells.get(i).get(j);
-                if (cell.containsCar())
+				if (cell.isTrafficLightOn()) {
+					sb.append("*");
+				} else if (cell.containsCar()) {
                     sb.append(cell.getCar().getVelocity());
-                else if (cell.isTrafficLightOn()) {
-                    sb.append("*");
-                }
-                else if (cell.isAvailable())
+                } else if (cell.isAvailable())
                 sb.append("_");
                 else
                     sb.append(".");
@@ -206,10 +218,10 @@ public class City {
         Integer cityHeight = scanner.nextInt();
         Integer amountOfTrafficLights = scanner.nextInt();
 
-        City city = new City(cityWidth, cityHeight, 0.0);
+        City city = new City(cityWidth, cityHeight);
 
         for (int i = 0; i < amountOfTrafficLights; i++) {
-            city.trafficLightClasses.add(new TrafficLightClass(scanner.nextInt(), scanner.nextInt(), scanner.nextBoolean()));
+            city.trafficLightClasses.add(new TrafficLightClass(scanner.nextInt(), scanner.nextInt(), scanner.nextInt(), scanner.nextBoolean()));
         }
 
         scanner.useDelimiter("\r\n");
@@ -235,9 +247,7 @@ public class City {
                     city.cells.get(i).get(j).setAvailability(true);
                     TrafficLightClass trafficLightClass = city.trafficLightClasses.get(c - '0');
                     trafficLightClass.addTrafficLight(i, j);
-                    if (trafficLightClass.isInitiallyEnabled()) {
-                        city.cells.get(i).get(j).setTrafficLightEnabled(true);
-                    }
+					city.cells.get(i).get(j).setTrafficLight(trafficLightClass.getStatus());
                 }
                 j++;
             }
@@ -247,36 +257,4 @@ public class City {
     }
 
 
-//    TRAFFIC LIGHTS NOT IMPLEMENTED YET
-
-    private void initialize(Double density) {
-
-//        cars = new ArrayList<>();
-        Random r = new Random();
-        while ((1.0 * carsCount) / (cityHeight * cityWidth) < density) {
-            // TODO: more efficient generation
-            Integer i = Math.abs( r.nextInt() % cityHeight);
-            Integer j = Math.abs(r.nextInt() % cityWidth);
-            if (!cells.get(i).get(j).containsCar()) {
-                Cell c = cells.get(i).get(j);
-//                c.setCar(new models.Car(Math.abs(r.nextInt() % maxVelocity)));
-//                cars.add(c);
-                carsCount++;
-            }
-        }
-    }
-
-    private void toggleTrafficLight(Integer pos) {
-        for (int i = 0; i < cityHeight; i++) {
-            cells.get(i).get(pos).toggleAvailability();
-        }
-    }
-
-    private void copyTrafficLights(List<List<Cell>> oldCells, List<List<Cell>> newCells) {
-        for (int i = 0; i < cityHeight; i++) {
-            for (int j = 0; j < cityWidth; j++) {
-                newCells.get(i).get(j).setAvailability(oldCells.get(i).get(j).isAvailable());
-            }
-        }
-    }
 }

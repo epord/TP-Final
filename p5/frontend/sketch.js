@@ -49,7 +49,7 @@ function draw() {
                 drawCar(i, j, cell);
             } else if (cell == '.') {
                 drawNotDrivable(i, j);
-    }
+            }
         });
         lane.forEach((cell, j) => {
             if (cell == '*') {
