@@ -16,7 +16,7 @@ public class City {
     private Integer carsCount = 0;
     private Integer cityWidth;
     private Integer cityHeight;
-    private Integer currentIteration = 1;
+    private Integer currentIteration = 0;
 
     private final Integer maxVelocity = 3;
     private final Double decelerationProbability = 0.3;
