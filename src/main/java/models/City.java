@@ -224,7 +224,10 @@ public class City {
 			city.trafficLightClasses.add(new TrafficLightClass(scanner.nextInt(), scanner.nextInt(), scanner.nextInt(), scanner.nextBoolean()));
 		}
 
-		scanner.useDelimiter("\r\n");
+		String osName = System.getProperty("os.name").toLowerCase();
+		boolean isWindows = osName.startsWith("windows");
+		if (isWindows) scanner.useDelimiter("\r\n");
+		else scanner.useDelimiter("\n");
 		Integer i = 0;
 		Integer j;
 		while (i < cityHeight) {
