@@ -9,26 +9,26 @@ public class TrafficLightClass {
 
 	private Integer onDuration;
 	private Integer offDuration;
-    private Integer phase;
-    private Boolean initiallyEnabled;
-    private List<Pair<Integer, Integer>> positions = new ArrayList<>();
+	private Integer phase;
+	private Boolean initiallyEnabled;
+	private List<Pair<Integer, Integer>> positions = new ArrayList<>();
 
-    private Integer lastToggleIteration;
-    private Boolean status;
+	private Integer lastToggleIteration;
+	private Boolean status;
 
-    public TrafficLightClass(Integer onDuration, Integer offDuration, Integer phase, Boolean initiallyEnabled) {
-        this.onDuration = onDuration;
-        this.offDuration = offDuration;
-        this.phase = phase % (onDuration + offDuration);
-        this.initiallyEnabled = initiallyEnabled;
-        this.lastToggleIteration = 0;
+	public TrafficLightClass(Integer onDuration, Integer offDuration, Integer phase, Boolean initiallyEnabled) {
+		this.onDuration = onDuration;
+		this.offDuration = offDuration;
+		this.phase = phase % (onDuration + offDuration);
+		this.initiallyEnabled = initiallyEnabled;
+		this.lastToggleIteration = 0;
 		// Traffic light start at the opposite value defined in city file. Because it will switch to the proper value when currentIteration == phase.
 		this.status = !initiallyEnabled;
-    }
+	}
 
-    public Boolean isInitiallyEnabled() {
-        return initiallyEnabled;
-    }
+	public Boolean isInitiallyEnabled() {
+		return initiallyEnabled;
+	}
 
 	public Integer getOnDuration() {
 		return onDuration;
@@ -39,20 +39,20 @@ public class TrafficLightClass {
 	}
 
 	public Integer getPeriod() {
-    	return onDuration + offDuration;
+		return onDuration + offDuration;
 	}
 
 	public Integer getPhase() {
-        return phase;
-    }
+		return phase;
+	}
 
-    public List<Pair<Integer, Integer>> getPositions() {
-        return positions;
-    }
+	public List<Pair<Integer, Integer>> getPositions() {
+		return positions;
+	}
 
-    public void addTrafficLight(Integer i, Integer j) {
-        positions.add(new Pair<>(i, j));
-    }
+	public void addTrafficLight(Integer i, Integer j) {
+		positions.add(new Pair<>(i, j));
+	}
 
 	public Integer getLastToggleIteration() {
 		return lastToggleIteration;

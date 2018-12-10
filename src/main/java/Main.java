@@ -6,23 +6,23 @@ import java.io.IOException;
 
 public class Main {
 
-    private static Integer frameCount = 1000;
+	private static Integer frameCount = 1000;
 
-    public static void main(String[] args) throws IOException {
-        City city = City.readCityFromFile("city.ns");
+	public static void main(String[] args) throws IOException {
+		City city = City.readCityFromFile("city.ns");
 //        models.City city = models.City.readCityFromFile("city_no_traffic_lights.ns");
-        AnimationBuilder ab = new AnimationBuilder(city);
-        ab.addCurrentFrame(city);
+		AnimationBuilder ab = new AnimationBuilder(city);
+		ab.addCurrentFrame(city);
 
-        for (int i = 0; i < frameCount; i++) {
-            System.out.println("===== " + i + " =====");
-            System.out.println(city.rasterize());
-            city.evolve();
-            ab.addCurrentFrame(city);
-        }
+		for (int i = 0; i < frameCount; i++) {
+			System.out.println("===== " + i + " =====");
+			System.out.println(city.rasterize());
+			city.evolve();
+			ab.addCurrentFrame(city);
+		}
 
-        FileManager fm = new FileManager();
-        fm.writeString("p5/frontend/animation.out", ab.getString());
-    }
+		FileManager fm = new FileManager();
+		fm.writeString("p5/frontend/animation.out", ab.getString());
+	}
 
 }
