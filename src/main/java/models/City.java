@@ -1,4 +1,5 @@
-import com.sun.org.apache.xpath.internal.operations.Bool;
+package models;
+
 import javafx.util.Pair;
 
 import java.io.File;
@@ -211,13 +212,13 @@ public class City {
             city.trafficLightClasses.add(new TrafficLightClass(scanner.nextInt(), scanner.nextInt(), scanner.nextBoolean()));
         }
 
-        scanner.useDelimiter("\n");
+        scanner.useDelimiter("\r\n");
         Integer i = 0;
         Integer j;
         while(i < cityHeight) {
             j = 0;
             String line = scanner.next();
-            if (line.length() != cityWidth) throw new IllegalStateException("City must be " + cityWidth + " width.");
+            if (line.length() != cityWidth) throw new IllegalStateException("models.City must be " + cityWidth + " width.");
             for (Character c: line.toCharArray()) {
                 if (c == '.') {
                     city.cells.get(i).get(j).setAvailability(true);
@@ -258,7 +259,7 @@ public class City {
             Integer j = Math.abs(r.nextInt() % cityWidth);
             if (!cells.get(i).get(j).containsCar()) {
                 Cell c = cells.get(i).get(j);
-//                c.setCar(new Car(Math.abs(r.nextInt() % maxVelocity)));
+//                c.setCar(new models.Car(Math.abs(r.nextInt() % maxVelocity)));
 //                cars.add(c);
                 carsCount++;
             }

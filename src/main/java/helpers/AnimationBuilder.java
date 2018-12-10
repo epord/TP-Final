@@ -1,3 +1,7 @@
+package helpers;
+
+import models.City;
+
 public class AnimationBuilder {
 
     private StringBuilder sb = new StringBuilder();

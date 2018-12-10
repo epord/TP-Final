@@ -1,3 +1,7 @@
+import helpers.AnimationBuilder;
+import helpers.FileManager;
+import models.City;
+
 import java.io.IOException;
 
 public class Main {
@@ -6,7 +10,7 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
         City city = City.readCityFromFile("city.ns");
-//        City city = City.readCityFromFile("city_no_traffic_lights.ns");
+//        models.City city = models.City.readCityFromFile("city_no_traffic_lights.ns");
         AnimationBuilder ab = new AnimationBuilder(city);
         ab.addCurrentFrame(city);
 

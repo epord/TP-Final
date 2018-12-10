@@ -1,3 +1,5 @@
+package models;
+
 public class Car {
     private Integer velocity;
     private Direction drivingDirection;

@@ -1,3 +1,5 @@
+package models;
+
 public class Cell {
     private Car car;
     private Integer i;
