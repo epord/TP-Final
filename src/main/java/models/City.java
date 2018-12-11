@@ -69,7 +69,7 @@ public class City {
 
             Integer distanceToNextIntersection = getDistanceToNextIntersection(position.getKey(), position.getValue(), car);
 
-            // Should change lane
+            // Should change lane?
             Double laneChangeValue = r.nextDouble();
             if (laneChangeValue < laneChangeRate && !cell.isIntersection() && distanceToNextIntersection > maxVelocity) {
                 Integer laneDirection = laneChangeValue < laneChangeRate / 2 ? 1 : -1;
@@ -145,6 +145,20 @@ public class City {
 		// Next iteration
 		currentIteration++;
 
+	}
+
+	public void initializeTraffic(Double density) {
+		Random r = new Random();
+		for (int i = 0; i < cityHeight; i++) {
+			for (int j = 0; j < cityWidth; j++) {
+				Cell cell = cells.get(i).get(j);
+				if (r.nextDouble() < density && cell.getTrafficDirection() != null) {
+					Car car = new Car(r.nextInt(maxVelocity), cell.getTrafficDirection());
+					cell.setCar(car);
+					cars.put(new Pair(i, j), car);
+				}
+			}
+		}
 	}
 
 	private Cell getCellAt(Integer i, Integer j) {
@@ -323,9 +337,12 @@ public class City {
 			String line = scanner.next();
 			if (line.length() != cityWidth)
 				throw new IllegalStateException("models.City must be " + cityWidth + " width.");
-			for (Character c : line.toCharArray()) {
-				if (c == '.') {
+			for (Character c : line.toCharArray()) {if(c == '|') {
 					city.cells.get(i).get(j).setAvailability(true);
+					city.cells.get(i).get(j).setTrafficDirection(Direction.VERTICAL);
+				} else if(c == '_') {
+					city.cells.get(i).get(j).setAvailability(true);
+					city.cells.get(i).get(j).setTrafficDirection(Direction.HORIZONTAL);
 				} else if (c == '+') {
 					city.cells.get(i).get(j).setAvailability(true);
 					city.cells.get(i).get(j).setIntersection(true);
@@ -345,6 +362,7 @@ public class City {
 			}
 			i++;
 		}
+
 		return city;
 	}
 

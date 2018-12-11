@@ -7,6 +7,7 @@ public class Cell {
 	private boolean isAvailable;
 	private boolean isIntersection;
 	private boolean isTrafficLightOn;
+	private Direction trafficDirection;
 
 	public Cell(Integer i, Integer j, boolean isAvailable, boolean isIntersection, boolean isTrafficLightOn) {
 		this.i = i;
@@ -18,6 +19,14 @@ public class Cell {
 
 	public Cell(Integer i, Integer j) {
 		this(i, j, false, false, false);
+	}
+
+	public Direction getTrafficDirection() {
+		return trafficDirection;
+	}
+
+	public void setTrafficDirection(Direction trafficDirection) {
+		this.trafficDirection = trafficDirection;
 	}
 
 	public Integer getI() {
