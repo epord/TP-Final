@@ -320,13 +320,16 @@ public class City {
 			j = 0;
 			String line = scanner.next();
 			if (line.length() != cityWidth)
-				throw new IllegalStateException("models.City must be " + cityWidth + " width.");
-			for (Character c : line.toCharArray()) {if(c == '|') {
+				throw new IllegalStateException("City must be " + cityWidth + " width.");
+			for (Character c : line.toCharArray()) {
+				if(c == '|') {
 					city.cells.get(i).get(j).setAvailability(true);
 					city.cells.get(i).get(j).setTrafficDirection(Direction.VERTICAL);
 				} else if(c == '_') {
 					city.cells.get(i).get(j).setAvailability(true);
 					city.cells.get(i).get(j).setTrafficDirection(Direction.HORIZONTAL);
+				} else if(c == '.') {
+					city.cells.get(i).get(j).setAvailability(true);
 				} else if (c == '+') {
 					city.cells.get(i).get(j).setAvailability(true);
 					city.cells.get(i).get(j).setIntersection(true);

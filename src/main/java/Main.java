@@ -10,8 +10,9 @@ public class Main {
 	private static Integer frameCount = 1000;
 
 	public static void main(String[] args) throws IOException {
+//		City city = City.readCityFromFile("avenue.ns");
 		City city = City.readCityFromFile("city.ns");
-//        models.City city = models.City.readCityFromFile("city_no_traffic_lights.ns");
+//        City city = City.readCityFromFile("city_no_traffic_lights.ns");
 		city.initializeTraffic(0.2);
 
 		CityStats cityStats = new CityStats();
