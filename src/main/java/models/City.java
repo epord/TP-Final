@@ -59,23 +59,6 @@ public class City {
 		Random r = new Random();
 
 
-		// Spawn cars
-		horizontalSpawners.stream().forEach(cell -> {
-			if (!cell.containsCar() && r.nextDouble() < horizontalSpawnRate) {
-				Car newCar = new Car(r.nextInt(maxVelocity), Direction.HORIZONTAL);
-				cell.setCar(newCar);
-				cars.put(new Pair<>(cell.getI(), cell.getJ()), newCar);
-			}
-		});
-		verticalSpawners.stream().forEach(cell -> {
-			if (!cell.containsCar() && r.nextDouble() < verticalSpawnRate) {
-				Car newCar = new Car(r.nextInt(maxVelocity), Direction.VERTICAL);
-				cell.setCar(newCar);
-				cars.put(new Pair<>(cell.getI(), cell.getJ()), newCar);
-			}
-		});
-
-
 		// NaSh Rule #1: Accelerate
 		cars.keySet().parallelStream().forEach(position -> {
 			Car car = cars.get(position);
@@ -176,13 +159,10 @@ public class City {
         Boolean isMovingHorizontally = car.isMovingHorizontally();
 
         for (int k = 1; distanceToObstacle == null && k < car.getVelocity() + 1; k++) {
-            Boolean outOfMap = isMovingHorizontally ? j + k >= cityWidth : i + k >= cityHeight;
-            if (outOfMap) {
-                distanceToObstacle = Integer.MAX_VALUE;
-            } else {
-                Cell cell = isMovingHorizontally ? cells.get(i).get(j + k) : cells.get(i + k).get(j);
-                distanceToObstacle = cell.isBlocked() ? k : null;
-            }
+			Cell cell = isMovingHorizontally ?
+					cells.get(i).get(Math.floorMod(j + k, cityWidth))
+					: cells.get(Math.floorMod(i + k, cityHeight)).get(j);
+			distanceToObstacle = cell.isBlocked() ? k : null;
         }
         return distanceToObstacle != null ? distanceToObstacle : Integer.MAX_VALUE;
     }
@@ -191,32 +171,26 @@ public class City {
         Integer distanceToObstacle = null;
         Boolean isMovingHorizontally = car.isMovingHorizontally();
 
-        for (int k = 1; distanceToObstacle == null; k++) {
-            Boolean outOfMap = isMovingHorizontally ? j - k < 0 : i - k < 0;
-            if (outOfMap) {
-                distanceToObstacle = Integer.MAX_VALUE;
-            } else {
-                Cell cell = isMovingHorizontally ? cells.get(i).get(j - k) : cells.get(i - k).get(j);
-                distanceToObstacle = cell.containsCar() ? k : null;
-            }
+        for (int k = 1; distanceToObstacle == null && k < maxVelocity; k++) {
+			Cell cell = isMovingHorizontally ?
+					cells.get(i).get(Math.floorMod(j - k, cityWidth))
+					: cells.get(Math.floorMod(i - k, cityHeight)).get(j);
+			distanceToObstacle = cell.containsCar() ? k : null;
         }
-        return distanceToObstacle;
+		return distanceToObstacle == null ? Integer.MAX_VALUE : distanceToObstacle;
     }
 
     private Integer getDistanceToNextIntersection(Integer i, Integer j, Car car) {
         Integer distanceToIntersection = null;
         Boolean isMovingHorizontally = car.isMovingHorizontally();
 
-        for (int k = 1; distanceToIntersection == null; k++) {
-            Boolean outOfMap = isMovingHorizontally ? j + k >= cityWidth : i + k >= cityHeight;
-            if (outOfMap) {
-                distanceToIntersection = Integer.MAX_VALUE;
-            } else {
-                Cell cell = isMovingHorizontally ? cells.get(i).get(j + k) : cells.get(i + k).get(j);
-                distanceToIntersection = cell.isIntersection() ? k : null;
-            }
+        for (int k = 1; distanceToIntersection == null && k < car.getVelocity(); k++) {
+			Cell cell = isMovingHorizontally ?
+					cells.get(i).get(Math.floorMod(j + k, cityWidth))
+					: cells.get(Math.floorMod(i + k, cityHeight)).get(j);
+			distanceToIntersection = cell.isIntersection() ? k : null;
         }
-        return distanceToIntersection;
+        return distanceToIntersection == null ? Integer.MAX_VALUE : distanceToIntersection;
     }
 
 	private void moveCars() {
@@ -227,32 +201,28 @@ public class City {
 			Integer j = position.getValue();
 			Car car = cars.get(position);
 			Boolean isMovingHorizontally = car.isMovingHorizontally();
-			Boolean outOfMap = isMovingHorizontally ?
-					j + car.getVelocity() >= cityWidth : i + car.getVelocity() >= cityHeight;
-			if (!outOfMap) {
-				Cell destinationCell;
-				Integer laneToChange = car.getLaneToChange();
-				if (laneToChange != null) {
-                    destinationCell = isMovingHorizontally ?
-                            cells.get(laneToChange).get(j + car.getVelocity())
-                            : cells.get(i + car.getVelocity()).get(laneToChange);
-                } else {
-                    destinationCell = isMovingHorizontally ?
-                            cells.get(i).get(j + car.getVelocity())
-                            : cells.get(i + car.getVelocity()).get(j);
-                }
-				while (destinationCell.containsCar() && car.getVelocity() > 0) {
-					car.setVelocity(car.getVelocity() - 1);
-					destinationCell = isMovingHorizontally ?
-							cells.get(destinationCell.getI()).get(j + car.getVelocity())
-							: cells.get(i + car.getVelocity()).get(destinationCell.getJ());
-				}
-				if (destinationCell.isBlocked()) {
-					destinationCell = cells.get(i).get(j);
-				}
-				destinationCell.setCar(car);
-				car.resetLaneToChange();
+			Cell destinationCell;
+			Integer laneToChange = car.getLaneToChange();
+			if (laneToChange != null) {
+				destinationCell = isMovingHorizontally ?
+						cells.get(laneToChange).get(Math.floorMod(j + car.getVelocity(), cityWidth))
+						: cells.get(Math.floorMod(i + car.getVelocity(), cityHeight)).get(laneToChange);
+			} else {
+				destinationCell = isMovingHorizontally ?
+						cells.get(i).get(Math.floorMod(j + car.getVelocity(), cityWidth))
+						: cells.get(Math.floorMod(i + car.getVelocity(), cityHeight)).get(j);
 			}
+			while (destinationCell.containsCar() && car.getVelocity() > 0) {
+				car.setVelocity(car.getVelocity() - 1);
+				destinationCell = isMovingHorizontally ?
+						cells.get(destinationCell.getI()).get(Math.floorMod(j + car.getVelocity(), cityWidth))
+						: cells.get(Math.floorMod(i + car.getVelocity(), cityHeight)).get(destinationCell.getJ());
+			}
+			if (destinationCell.isBlocked()) {
+				destinationCell = cells.get(i).get(j);
+			}
+			destinationCell.setCar(car);
+			car.resetLaneToChange();
 		});
 
 		cars = getCars();

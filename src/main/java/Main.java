@@ -13,7 +13,7 @@ public class Main {
 //		City city = City.readCityFromFile("avenue.ns");
 		City city = City.readCityFromFile("city.ns");
 //        City city = City.readCityFromFile("city_no_traffic_lights.ns");
-		city.initializeTraffic(0.2);
+		city.initializeTraffic(0.05);
 
 		CityStats cityStats = new CityStats();
 		cityStats.saveStats(city);
