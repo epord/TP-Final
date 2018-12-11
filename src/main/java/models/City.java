@@ -91,6 +91,7 @@ public class City {
                             && velocityInOtherLane > velocityInSameLane && backwardDistance > maxVelocity) {
                         Integer laneToChange = car.isMovingHorizontally() ? neighbor.getI() : neighbor.getJ();
                         car.changeLane(laneToChange);
+                        car.setVelocity(velocityInOtherLane);
                         return;
                     }
                 }
@@ -247,6 +248,9 @@ public class City {
 					destinationCell = isMovingHorizontally ?
 							cells.get(destinationCell.getI()).get(j + car.getVelocity())
 							: cells.get(i + car.getVelocity()).get(destinationCell.getJ());
+				}
+				if (destinationCell.isBlocked()) {
+					destinationCell = cells.get(i).get(j);
 				}
 				destinationCell.setCar(car);
 				car.resetLaneToChange();
