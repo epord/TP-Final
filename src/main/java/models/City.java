@@ -13,7 +13,6 @@ public class City {
 	private List<TrafficLightClass> trafficLightClasses = new ArrayList<>();
 	private List<Cell> horizontalSpawners = new ArrayList<>();
 	private List<Cell> verticalSpawners = new ArrayList<>();
-	private Integer carsCount = 0;
 	private Integer cityWidth;
 	private Integer cityHeight;
 	private Integer currentIteration = 0;
@@ -28,6 +27,31 @@ public class City {
 		this.cityWidth = cityWidth;
 		this.cityHeight = cityHeight;
 		this.cells = getEmptyCells();
+	}
+
+	private List<List<Cell>> getEmptyCells() {
+		List<List<Cell>> newCells = new ArrayList<>();
+		for (int i = 0; i < cityHeight; i++) {
+			newCells.add(new ArrayList<>());
+			for (int j = 0; j < cityWidth; j++) {
+				newCells.get(i).add(new Cell(i, j));
+			}
+		}
+		return newCells;
+	}
+
+	public void initializeTraffic(Double density) {
+		Random r = new Random();
+		for (int i = 0; i < cityHeight; i++) {
+			for (int j = 0; j < cityWidth; j++) {
+				Cell cell = cells.get(i).get(j);
+				if (r.nextDouble() < density && cell.getTrafficDirection() != null) {
+					Car car = new Car(r.nextInt(maxVelocity), cell.getTrafficDirection());
+					cell.setCar(car);
+					cars.put(new Pair(i, j), car);
+				}
+			}
+		}
 	}
 
 	public void evolve() {
@@ -59,47 +83,47 @@ public class City {
 		});
 
 
-        // Nash Rule #2: Decelerate
-        cars.keySet().parallelStream().forEach(position -> {
-            Car car = cars.get(position);
-            Cell cell = cells.get(position.getKey()).get(position.getValue());
-            Integer distanceToNextObstacle = getDistanceToObstacle(cell.getI(), cell.getJ(), car);
-            Integer velocityInSameLane = Math.min(car.getVelocity(), distanceToNextObstacle - 1);
+		// Nash Rule #2: Decelerate
+		cars.keySet().parallelStream().forEach(position -> {
+			Car car = cars.get(position);
+			Cell cell = cells.get(position.getKey()).get(position.getValue());
+			Integer distanceToNextObstacle = getDistanceToObstacle(cell.getI(), cell.getJ(), car);
+			Integer velocityInSameLane = Math.min(car.getVelocity(), distanceToNextObstacle - 1);
 
 
-            Integer distanceToNextIntersection = getDistanceToNextIntersection(position.getKey(), position.getValue(), car);
+			Integer distanceToNextIntersection = getDistanceToNextIntersection(position.getKey(), position.getValue(), car);
 
-            // Should change lane?
-            Double laneChangeValue = r.nextDouble();
-            if (laneChangeValue < laneChangeRate && !cell.isIntersection() && distanceToNextIntersection > maxVelocity) {
-                Integer laneDirection = laneChangeValue < laneChangeRate / 2 ? 1 : -1;
-                Cell neighbor =  car.isMovingHorizontally() ?
-                        getCellAt(position.getKey() + laneDirection, position.getValue())
-                        : getCellAt(position.getKey(), position.getValue() + laneDirection);
-                if (neighbor != null && !neighbor.isBlocked()) {
-                    Cell distantNeighbor =  car.isMovingHorizontally() ?
-                            getCellAt(position.getKey() + 2 * laneDirection, position.getValue())
-                            : getCellAt(position.getKey(), position.getValue() + 2 * laneDirection);
-                    Integer backwardDistance = car.isMovingHorizontally() ?
-                            getDistanceToPreviousCar(neighbor.getI(), neighbor.getJ(), car)
-                            : getDistanceToPreviousCar(neighbor.getI(), neighbor.getJ(), car);
-                    Integer distanceToNextCar = car.isMovingHorizontally() ?
-                            getDistanceToObstacle(neighbor.getI(), neighbor.getJ(), car)
-                            : getDistanceToObstacle(neighbor.getI(), neighbor.getJ(), car);
-                    Integer velocityInOtherLane = Math.min(car.getVelocity(), distanceToNextCar - 1);
-                    if ((distantNeighbor == null || !distantNeighbor.containsCar())
-                            && velocityInOtherLane > velocityInSameLane && backwardDistance > maxVelocity) {
-                        Integer laneToChange = car.isMovingHorizontally() ? neighbor.getI() : neighbor.getJ();
-                        car.changeLane(laneToChange);
-                        car.setVelocity(velocityInOtherLane);
-                        return;
-                    }
-                }
-            }
+			// Should change lane?
+			Double laneChangeValue = r.nextDouble();
+			if (laneChangeValue < laneChangeRate && !cell.isIntersection() && distanceToNextIntersection > maxVelocity) {
+				Integer laneDirection = laneChangeValue < laneChangeRate / 2 ? 1 : -1;
+				Cell neighbor =  car.isMovingHorizontally() ?
+						getCellAt(position.getKey() + laneDirection, position.getValue())
+						: getCellAt(position.getKey(), position.getValue() + laneDirection);
+				if (neighbor != null && !neighbor.isBlocked()) {
+					Cell distantNeighbor =  car.isMovingHorizontally() ?
+							getCellAt(position.getKey() + 2 * laneDirection, position.getValue())
+							: getCellAt(position.getKey(), position.getValue() + 2 * laneDirection);
+					Integer backwardDistance = car.isMovingHorizontally() ?
+							getDistanceToPreviousCar(neighbor.getI(), neighbor.getJ(), car)
+							: getDistanceToPreviousCar(neighbor.getI(), neighbor.getJ(), car);
+					Integer distanceToNextCar = car.isMovingHorizontally() ?
+							getDistanceToObstacle(neighbor.getI(), neighbor.getJ(), car)
+							: getDistanceToObstacle(neighbor.getI(), neighbor.getJ(), car);
+					Integer velocityInOtherLane = Math.min(car.getVelocity(), distanceToNextCar - 1);
+					if ((distantNeighbor == null || !distantNeighbor.containsCar())
+							&& velocityInOtherLane > velocityInSameLane && backwardDistance > maxVelocity) {
+						Integer laneToChange = car.isMovingHorizontally() ? neighbor.getI() : neighbor.getJ();
+						car.changeLane(laneToChange);
+						car.setVelocity(velocityInOtherLane);
+						return;
+					}
+				}
+			}
 
-            car.setVelocity(velocityInSameLane);
+			car.setVelocity(velocityInSameLane);
 
-        });
+		});
 
 
 		// NaSh Rule #3: Randomization
@@ -145,46 +169,6 @@ public class City {
 		// Next iteration
 		currentIteration++;
 
-	}
-
-	public void initializeTraffic(Double density) {
-		Random r = new Random();
-		for (int i = 0; i < cityHeight; i++) {
-			for (int j = 0; j < cityWidth; j++) {
-				Cell cell = cells.get(i).get(j);
-				if (r.nextDouble() < density && cell.getTrafficDirection() != null) {
-					Car car = new Car(r.nextInt(maxVelocity), cell.getTrafficDirection());
-					cell.setCar(car);
-					cars.put(new Pair(i, j), car);
-				}
-			}
-		}
-	}
-
-	private Cell getCellAt(Integer i, Integer j) {
-        if (i < 0 || i >= cityHeight || j < 0 || j >= cityWidth) {
-            return null;
-        }
-        return cells.get(i).get(j);
-    }
-
-	public Integer getCityWidth() {
-		return cityWidth;
-	}
-
-	public Integer getCityHeight() {
-		return cityHeight;
-	}
-
-	private List<List<Cell>> getEmptyCells() {
-		List<List<Cell>> newCells = new ArrayList<>();
-		for (int i = 0; i < cityHeight; i++) {
-			newCells.add(new ArrayList<>());
-			for (int j = 0; j < cityWidth; j++) {
-				newCells.get(i).add(new Cell(i, j));
-			}
-		}
-		return newCells;
 	}
 
     private Integer getDistanceToObstacle(Integer i, Integer j, Car car) {
@@ -366,5 +350,23 @@ public class City {
 		return city;
 	}
 
+	Cell getCellAt(Integer i, Integer j) {
+		if (i < 0 || i >= cityHeight || j < 0 || j >= cityWidth) {
+			return null;
+		}
+		return cells.get(i).get(j);
+	}
+
+	public Integer getCityWidth() {
+		return cityWidth;
+	}
+
+	public Integer getCityHeight() {
+		return cityHeight;
+	}
+
+	Integer getCurrentIteration() {
+		return currentIteration;
+	}
 
 }
