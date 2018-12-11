@@ -1,6 +1,7 @@
 import helpers.AnimationBuilder;
 import helpers.FileManager;
 import models.City;
+import models.CityStats;
 
 import java.io.IOException;
 
@@ -12,6 +13,10 @@ public class Main {
 		City city = City.readCityFromFile("city.ns");
 //        models.City city = models.City.readCityFromFile("city_no_traffic_lights.ns");
 		city.initializeTraffic(0.2);
+
+		CityStats cityStats = new CityStats();
+		cityStats.saveStats(city);
+
 		AnimationBuilder ab = new AnimationBuilder(city);
 		ab.addCurrentFrame(city);
 
@@ -20,6 +25,7 @@ public class Main {
 			System.out.println(city.rasterize());
 			city.evolve();
 			ab.addCurrentFrame(city);
+			cityStats.saveStats(city);
 		}
 
 		FileManager fm = new FileManager();
