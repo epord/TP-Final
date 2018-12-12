@@ -399,6 +399,10 @@ public class City {
 		return currentIteration;
 	}
 
+	public List<TrafficLightClass> getTrafficLightClasses() {
+		return trafficLightClasses;
+	}
+
 	public Set<Car> getJustSpawnedCars() {
 		return justSpawnedCars;
 	}
