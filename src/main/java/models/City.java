@@ -5,6 +5,7 @@ import javafx.util.Pair;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class City {
 
@@ -19,8 +20,8 @@ public class City {
 
 	private final Integer maxVelocity = 3;
 	private final Double decelerationProbability = 0.3;
-	private final Double horizontalSpawnRate = 0.2;
-    private final Double verticalSpawnRate = 0.1;
+	private final Double horizontalSpawnRate = 1.5;
+    private final Double verticalSpawnRate = 0.3;
     private final Double laneChangeRate = 0.5;
 
 	public City(Integer cityWidth, Integer cityHeight) {
@@ -54,34 +55,36 @@ public class City {
 		}
 	}
 
-	public void evolve() {
+	public Car spawnRandomCar(Direction direction, Random random){
+		List<Cell> spawners = Direction.VERTICAL.equals(direction)? verticalSpawners : horizontalSpawners;
+		spawners = spawners.stream()
+				.filter(cell -> !cell.containsCar())
+				.collect(Collectors.toList());
+		if(spawners.size() == 0) return null;
+		Car newCar = new Car(random.nextInt(maxVelocity), direction);
+		Cell selectedCell = spawners.get(random.nextInt(spawners.size()));
+		cars.put(new Pair<>(selectedCell.getI(), selectedCell.getJ()), newCar);
+		selectedCell.setCar(newCar);
+		return newCar;
+	}
 
+	public void evolve() {
 		Random r = new Random();
 
-
-		// Spawn cars
-		horizontalSpawners.stream().forEach(cell -> {
-			if (!cell.containsCar() && r.nextDouble() < horizontalSpawnRate) {
-				Car newCar = new Car(r.nextInt(maxVelocity), Direction.HORIZONTAL);
-				cell.setCar(newCar);
-				cars.put(new Pair<>(cell.getI(), cell.getJ()), newCar);
-			}
-		});
-		verticalSpawners.stream().forEach(cell -> {
-			if (!cell.containsCar() && r.nextDouble() < verticalSpawnRate) {
-				Car newCar = new Car(r.nextInt(maxVelocity), Direction.VERTICAL);
-				cell.setCar(newCar);
-				cars.put(new Pair<>(cell.getI(), cell.getJ()), newCar);
-			}
-		});
-
+		double spawned = r.nextDouble() + horizontalSpawnRate.intValue() < horizontalSpawnRate? Math.ceil(horizontalSpawnRate) : Math.floor(horizontalSpawnRate);
+		for (int i = 0; i < spawned; i++) {
+			spawnRandomCar(Direction.HORIZONTAL, r);
+		}
+		spawned = r.nextDouble() + verticalSpawnRate.intValue() < verticalSpawnRate? Math.ceil(verticalSpawnRate) : Math.floor(verticalSpawnRate);
+		for (int i = 0; i < spawned; i++) {
+			spawnRandomCar(Direction.VERTICAL, r);
+		}
 
 		// NaSh Rule #1: Accelerate
 		cars.keySet().parallelStream().forEach(position -> {
 			Car car = cars.get(position);
 			car.setVelocity(Math.min(car.getVelocity() + 1, maxVelocity));
 		});
-
 
 		// Nash Rule #2: Decelerate
 		cars.keySet().parallelStream().forEach(position -> {
