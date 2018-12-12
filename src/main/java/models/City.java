@@ -11,6 +11,8 @@ public class City {
 
 	private List<List<Cell>> cells;
 	private Map<Pair<Integer, Integer>, Car> cars = new HashMap<>();
+	private Set<Car> justSpawnedCars = new HashSet<>();
+	private Set<Car> justRemovedCars = new HashSet<>();
 	private List<TrafficLightClass> trafficLightClasses = new ArrayList<>();
 	private List<Cell> horizontalSpawners = new ArrayList<>();
 	private List<Cell> verticalSpawners = new ArrayList<>();
@@ -50,6 +52,7 @@ public class City {
 					Car car = new Car(r.nextInt(maxVelocity), cell.getTrafficDirection());
 					cell.setCar(car);
 					cars.put(new Pair(i, j), car);
+					justSpawnedCars.add(car);
 				}
 			}
 		}
@@ -65,20 +68,38 @@ public class City {
 		Cell selectedCell = spawners.get(random.nextInt(spawners.size()));
 		cars.put(new Pair<>(selectedCell.getI(), selectedCell.getJ()), newCar);
 		selectedCell.setCar(newCar);
+		justSpawnedCars.add(newCar);
 		return newCar;
+	}
+
+
+	private int getSpawnsAmount(double flow, Random r) {
+		int spawns = (int) Math.floor(flow);
+		double excess = flow - spawns;
+		if (r.nextDouble() < excess) {
+			spawns++;
+		}
+
+		return spawns;
 	}
 
 	public void evolve() {
 		Random r = new Random();
 
-		double spawned = r.nextDouble() + horizontalSpawnRate.intValue() < horizontalSpawnRate? Math.ceil(horizontalSpawnRate) : Math.floor(horizontalSpawnRate);
-		for (int i = 0; i < spawned; i++) {
+		// Spawn cars
+		justSpawnedCars.clear();
+		// Horizontal spawns
+		int horizontalSpawns = getSpawnsAmount(horizontalSpawnRate, r);
+		for (int i = 0; i < horizontalSpawns; i++) {
 			spawnRandomCar(Direction.HORIZONTAL, r);
 		}
-		spawned = r.nextDouble() + verticalSpawnRate.intValue() < verticalSpawnRate? Math.ceil(verticalSpawnRate) : Math.floor(verticalSpawnRate);
-		for (int i = 0; i < spawned; i++) {
+
+		// Vertical spawns
+		int verticalSpawns = getSpawnsAmount(verticalSpawnRate, r);
+		for (int i = 0; i < verticalSpawns; i++) {
 			spawnRandomCar(Direction.VERTICAL, r);
 		}
+
 
 		// NaSh Rule #1: Accelerate
 		cars.keySet().parallelStream().forEach(position -> {
@@ -224,6 +245,7 @@ public class City {
 
 	private void moveCars() {
 		clearCarsFromCells();
+		justRemovedCars.clear();
 
 		cars.keySet().stream().forEach(position -> {
 			Integer i = position.getKey();
@@ -255,6 +277,8 @@ public class City {
 				}
 				destinationCell.setCar(car);
 				car.resetLaneToChange();
+			} else {
+				justRemovedCars.add(car);
 			}
 		});
 
@@ -375,4 +399,11 @@ public class City {
 		return currentIteration;
 	}
 
+	public Set<Car> getJustSpawnedCars() {
+		return justSpawnedCars;
+	}
+
+	public Set<Car> getJustRemovedCars() {
+		return justRemovedCars;
+	}
 }
