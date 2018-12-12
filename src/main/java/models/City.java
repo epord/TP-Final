@@ -18,10 +18,18 @@ public class City {
 	private Integer currentIteration = 0;
 
 	private final Integer maxVelocity = 3;
-	private final Double decelerationProbability = 0.3;
+	private final Double decelerationProbability = 0.8;
 	private final Double horizontalSpawnRate = 0.2;
     private final Double verticalSpawnRate = 0.1;
     private final Double laneChangeRate = 0.5;
+
+    // Stats
+	List<Integer> time = new ArrayList<>();
+	List<Integer> carCount = new ArrayList<>();
+	List<Integer> drivableCellsCount = new ArrayList<>();
+	List<Double> density = new ArrayList<>();
+	List<Double> meanVelocity = new ArrayList<>();
+	List<Integer> deadCars = new ArrayList<>(); // amount of cars to exit the scene
 
 	public City(Integer cityWidth, Integer cityHeight) {
 		this.cityWidth = cityWidth;
@@ -152,6 +160,10 @@ public class City {
 		// Next iteration
 		currentIteration++;
 
+
+		// Stats
+		saveStats();
+
 	}
 
     private Integer getDistanceToObstacle(Integer i, Integer j, Car car) {
@@ -196,6 +208,7 @@ public class City {
 	private void moveCars() {
 		clearCarsFromCells();
 
+		deadCars.add(0);
 		cars.keySet().stream().forEach(position -> {
 			Integer i = position.getKey();
 			Integer j = position.getValue();
@@ -223,6 +236,13 @@ public class City {
 			}
 			destinationCell.setCar(car);
 			car.resetLaneToChange();
+
+			// Save dead cars for stats
+			boolean isOut = isMovingHorizontally ?
+					j + car.getVelocity() >= cityWidth : i + car.getVelocity() >= cityHeight;
+			if (isOut) {
+				deadCars.set(currentIteration, deadCars.get(currentIteration) + 1);
+			}
 		});
 
 		cars = getCars();
@@ -321,6 +341,48 @@ public class City {
 		}
 
 		return city;
+	}
+
+	public void saveStats() {
+		Integer cityWidth = getCityWidth();
+		Integer cityHeight = getCityHeight();
+
+		this.time.add(getCurrentIteration());
+
+		Double cumulatedVelocities = 0.0;
+		Integer carCount = 0;
+		Integer drivableCellsCount = 0;
+		for (int i = 0; i < cityHeight; i++) {
+			for (int j = 0; j < cityWidth; j++) {
+				Cell cell = getCellAt(i, j);
+				if (cell.containsCar()) {
+					carCount++;
+					cumulatedVelocities += cell.getCar().getVelocity();
+				}
+				if (cell.isAvailable()) {
+					drivableCellsCount++;
+				}
+			}
+		}
+		this.carCount.add(carCount);
+		this.drivableCellsCount.add(drivableCellsCount);
+		this.density.add(carCount.doubleValue() / drivableCellsCount);
+		this.meanVelocity.add(cumulatedVelocities / carCount);
+	}
+
+	public void printStats() {
+		System.out.println("time = " + time + ';');
+		System.out.println("carCount = " + carCount + ';');
+		System.out.println("drivableCellsCount = " + drivableCellsCount + ';');
+		System.out.println("density = " + density + ';');
+		System.out.println("meanVelocity = " + meanVelocity + ';');
+		System.out.println("deadCars = " + deadCars + ';');
+	}
+
+	public void printFlowByDensity(Integer idx) {
+		Integer totalDeadCars = deadCars.parallelStream().mapToInt(i -> i.intValue()).sum();
+		System.out.println("density" + idx + " = " + density.get(0) + ";");
+		System.out.println("flow" + idx + " = " + totalDeadCars.doubleValue() / deadCars.size() + ";");
 	}
 
 	Cell getCellAt(Integer i, Integer j) {

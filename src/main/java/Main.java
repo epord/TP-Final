@@ -1,36 +1,33 @@
 import helpers.AnimationBuilder;
 import helpers.FileManager;
 import models.City;
-import models.CityStats;
 
 import java.io.IOException;
 
 public class Main {
 
-	private static Integer frameCount = 1000;
+	private static Integer frameCount = 10800;
 
 	public static void main(String[] args) throws IOException {
-//		City city = City.readCityFromFile("avenue.ns");
-		City city = City.readCityFromFile("city.ns");
-//        City city = City.readCityFromFile("city_no_traffic_lights.ns");
-		city.initializeTraffic(0.05);
 
-		CityStats cityStats = new CityStats();
-		cityStats.saveStats(city);
+		Integer idx = 0;
 
-		AnimationBuilder ab = new AnimationBuilder(city);
-		ab.addCurrentFrame(city);
+		for (int j = 0; j < 3; j++) {
+			for (double d = 0.07; d < 0.65; d += 0.02) {
+				City city = City.readCityFromFile("city.ns");
+				city.initializeTraffic(d);
 
-		for (int i = 0; i < frameCount; i++) {
-			System.out.println("===== " + i + " =====");
-			System.out.println(city.rasterize());
-			city.evolve();
-			ab.addCurrentFrame(city);
-			cityStats.saveStats(city);
+				AnimationBuilder ab = new AnimationBuilder(city);
+				ab.addCurrentFrame(city);
+
+				for (int i = 0; i < frameCount; i++) {
+					city.evolve();
+					ab.addCurrentFrame(city);
+				}
+
+				city.printFlowByDensity(idx++);
+			}
 		}
-
-		FileManager fm = new FileManager();
-		fm.writeString("p5/frontend/animation.out", ab.getString());
 	}
 
 }
