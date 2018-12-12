@@ -15,6 +15,8 @@ public class CityStats {
     Map<Car, Integer> spawnTimes = new HashMap<>();
     Map<Integer, Double> avgHorizontalArrivalTime = new HashMap<>();
     Map<Integer, Double> avgVerticalArrivalTime = new HashMap<>();
+    List<Integer> horizontalCarFlow = new ArrayList<>();
+    List<Integer> verticalCarFlow = new ArrayList<>();
 
     public void saveStats(City city) {
     	Integer currentIteration = city.getCurrentIteration();
@@ -43,6 +45,8 @@ public class CityStats {
         this.density.add(carCount.doubleValue() / drivableCellsCount);
         this.meanVelocity.add(cumulatedVelocities / carCount);
 
+
+        // Average arrival times
         city.getJustSpawnedCars().forEach(car -> {
         	spawnTimes.put(car, currentIteration);
 		});
@@ -70,6 +74,10 @@ public class CityStats {
 		if (verticalCount > 0) {
 			avgVerticalArrivalTime.put(currentIteration, verticalSum / verticalCount);
 		}
+
+		// Car Flow
+		horizontalCarFlow.add((int)city.getJustRemovedCars().stream().filter(car -> car.getDrivingDirection().equals(Direction.HORIZONTAL)).count());
+		verticalCarFlow.add((int)city.getJustRemovedCars().stream().filter(car -> car.getDrivingDirection().equals(Direction.VERTICAL)).count());
 
     }
 
