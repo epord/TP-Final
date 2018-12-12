@@ -81,4 +81,49 @@ public class CityStats {
 
     }
 
+    public List<Integer> getTime() {
+        return time;
+    }
+
+    public List<Integer> getCarCount() {
+        return carCount;
+    }
+
+    public List<Integer> getDrivableCellsCount() {
+        return drivableCellsCount;
+    }
+
+    public List<Double> getDensity() {
+        return density;
+    }
+
+    public List<Double> getMeanVelocity() {
+        return meanVelocity;
+    }
+
+    public Map<Car, Integer> getSpawnTimes() {
+        return spawnTimes;
+    }
+
+    public Map<Integer, Double> getAvgHorizontalArrivalTime() {
+        return avgHorizontalArrivalTime;
+    }
+
+    public Map<Integer, Double> getAvgVerticalArrivalTime() {
+        return avgVerticalArrivalTime;
+    }
+
+    public Double getAverageArrivalTime() {
+        Double horizontalCumulatedArrivalTimes = avgHorizontalArrivalTime.keySet().stream()
+                .map(key -> avgHorizontalArrivalTime.get(key))
+                .mapToDouble(Double::doubleValue)
+                .sum();
+        Double verticalCumulatedArrivalTimes = avgVerticalArrivalTime.keySet().stream()
+                .map(key -> avgVerticalArrivalTime.get(key))
+                .mapToDouble(Double::doubleValue)
+                .sum();
+        Double averageArrivalTime = (horizontalCumulatedArrivalTimes + verticalCumulatedArrivalTimes)
+                / (avgHorizontalArrivalTime.size() + avgVerticalArrivalTime.size());
+        return averageArrivalTime;
+    }
 }
