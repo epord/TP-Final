@@ -5,6 +5,8 @@ import models.CityStats;
 import models.TrafficLightModifier;
 
 import java.io.IOException;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class Main {
 
@@ -30,8 +32,8 @@ public class Main {
 		ab.addCurrentFrame(city);
 
 		for (int i = 0; i < frameCount; i++) {
-			System.out.println("===== " + i + " =====");
-			System.out.println(city.rasterize());
+//			System.out.println("===== " + i + " =====");
+//			System.out.println(city.rasterize());
 			city.evolve();
 			ab.addCurrentFrame(city);
 			cityStats.saveStats(city);

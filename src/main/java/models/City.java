@@ -22,7 +22,7 @@ public class City {
 
 	private final Integer maxVelocity = 3;
 	private final Double decelerationProbability = 0.3;
-	private final Double horizontalSpawnRate = 1.5;
+	private final Double horizontalSpawnRate = 9.0;
     private final Double verticalSpawnRate = 0.3;
     private final Double laneChangeRate = 0.5;
 
