@@ -15,7 +15,7 @@ public class TrafficLightModifier{
 		return city.getTrafficLightClasses().size()-1;
 	}
 
-	public static void replaceTrafficLightClass(City city, Integer index, Integer onDuration, Integer offDuration, Integer phase, Boolean initiallyEnabled){
+	public static void replaceTrafficLightClass(City city, int index, Integer onDuration, Integer offDuration, Integer phase, Boolean initiallyEnabled){
 		TrafficLightClass trafficLightClass = new TrafficLightClass(onDuration,offDuration,phase,initiallyEnabled);
 		List<TrafficLightClass> classes = city.getTrafficLightClasses();
 		if(index < classes.size()){
@@ -41,6 +41,11 @@ public class TrafficLightModifier{
 		}
 	}
 
+	public static void removeTrafficLights(City city){
+		city.getTrafficLightClasses().clear();
+		refreshCityCellsTrafficLightStatus(city);
+	}
+
 	public static void refreshCityCellsTrafficLightStatus(City city){
 		//Blank the traffic light statuses
 		for (int i = 0; i < city.getCityHeight(); i++) {
@@ -54,6 +59,7 @@ public class TrafficLightModifier{
 				.forEach(trafficLightClass -> trafficLightClass.getPositions()
 						.stream()
 						//set the cells to the correct traffic light status
-						.forEach(pair -> city.getCellAt(pair.getKey(),pair.getValue()).setTrafficLight(trafficLightClass.getStatus())));
+						.forEach(pair -> city.getCellAt(pair.getKey(),pair.getValue())
+								.setTrafficLight(trafficLightClass.getStatus())));
 	}
 }
