@@ -32,10 +32,10 @@ public class TrafficLightModifier{
 	}
 
 	//Add a trafic light from the class to the xy position
-	public static void addTrafficLight(City city, Integer classIndex, Integer x, Integer y){
+	public static void addTrafficLight(City city, Integer classIndex, Integer i, Integer j){
 		List<TrafficLightClass> classes = city.getTrafficLightClasses();
 		if(classIndex < classes.size()){
-			classes.get(classIndex).getPositions().add(new Pair<>(x,y));
+			classes.get(classIndex).getPositions().add(new Pair<>(i, j));
 		} else {
 			throw new IllegalStateException("no such traffic light");
 		}

@@ -22,7 +22,7 @@ public class City {
 
 	private final Integer maxVelocity = 3;
 	private final Double decelerationProbability = 0.3;
-	private final Double horizontalSpawnRate = 9.0;
+	private final Double horizontalSpawnRate = 3.0;
     private final Double verticalSpawnRate = 0.3;
     private final Double laneChangeRate = 0.5;
 
@@ -71,7 +71,6 @@ public class City {
 		justSpawnedCars.add(newCar);
 		return newCar;
 	}
-
 
 	private int getSpawnsAmount(double flow, Random r) {
 		int spawns = (int) Math.floor(flow);
