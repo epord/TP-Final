@@ -19,11 +19,11 @@ public class City {
 	private Integer cityWidth;
 	private Integer cityHeight;
 	private Integer currentIteration = 0;
+	private Double horizontalSpawnRate = 1.0;
+	private Double verticalSpawnRate = 1.0;
 
 	private final Integer maxVelocity = 3;
 	private final Double decelerationProbability = 0.3;
-	private final Double horizontalSpawnRate = 3.0;
-    private final Double verticalSpawnRate = 0.3;
     private final Double laneChangeRate = 0.5;
 
 	public City(Integer cityWidth, Integer cityHeight) {
@@ -384,6 +384,14 @@ public class City {
 			return null;
 		}
 		return cells.get(i).get(j);
+	}
+
+	public void setHorizontalSpawnRate(Double horizontalSpawnRate) {
+		this.horizontalSpawnRate = horizontalSpawnRate;
+	}
+
+	public void setVerticalSpawnRate(Double verticalSpawnRate) {
+		this.verticalSpawnRate = verticalSpawnRate;
 	}
 
 	public Integer getCityWidth() {

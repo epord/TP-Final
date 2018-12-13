@@ -27,7 +27,7 @@ public class TrafficLightModifier{
 			classes.remove(index);
 			classes.add(index, trafficLightClass);
 		} else {
-			throw new IllegalStateException("no such traffic light");
+			throw new IllegalStateException("no such traffic light: " + index);
 		}
 	}
 
