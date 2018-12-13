@@ -113,6 +113,14 @@ public class CityStats {
         return avgVerticalArrivalTime;
     }
 
+    public List<Integer> getHorizontalCarFlow() {
+        return horizontalCarFlow;
+    }
+
+    public List<Integer> getVerticalCarFlow() {
+        return verticalCarFlow;
+    }
+
     public Double getAverageArrivalTime() {
         Double horizontalCumulatedArrivalTimes = avgHorizontalArrivalTime.keySet().stream()
                 .map(key -> avgHorizontalArrivalTime.get(key))
@@ -124,6 +132,18 @@ public class CityStats {
                 .sum();
         Double averageArrivalTime = (horizontalCumulatedArrivalTimes + verticalCumulatedArrivalTimes)
                 / (avgHorizontalArrivalTime.size() + avgVerticalArrivalTime.size());
+        return averageArrivalTime;
+    }
+
+    public Double getAverageFlow() {
+        Double horizontalCumulatedFlow = horizontalCarFlow.stream()
+                .mapToDouble(Integer::intValue)
+                .sum();
+        Double veticalCumulatedFlow = verticalCarFlow.stream()
+                .mapToDouble(Integer::intValue)
+                .sum();
+        Double averageArrivalTime = (horizontalCumulatedFlow + veticalCumulatedFlow)
+                / (horizontalCarFlow.size() + verticalCarFlow.size());
         return averageArrivalTime;
     }
 }
